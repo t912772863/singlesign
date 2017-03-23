@@ -7,6 +7,7 @@ import com.tian.singlesign.controller.common.ResponseData;
 import com.tian.common.validation.Regular;
 import com.tian.singlesign.dao.entity.User;
 import com.tian.singlesign.service.IUserService;
+import com.tian.springmvcmybatis.remote.ITestRemoteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,11 +24,14 @@ import javax.servlet.http.HttpServletRequest;
 public class LoginController extends BaseController{
     @Autowired
     private IUserService userService;
+    @Autowired
+    private ITestRemoteService testRemoteService;
 
     @RequestMapping("test")
     @ResponseBody
     public ResponseData test(){
-        return success;
+        String s = testRemoteService.print("终于成功啦...");
+        return success.setData(s);
     }
 
     /**
