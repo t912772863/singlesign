@@ -11,6 +11,8 @@
     <modules>
         <module>singlesign-service</module>
         <module>singlesign-controller</module>
+        <module>singlesign-dao</module>
+        <module>singlesign-remote</module>
     </modules>
 
 

@@ -3,4 +3,45 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
          version="3.1">
+    <!-- 读取spring配置文件 -->
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <!--spring的上下文环境中初始化bean,这里面的值都会被DispatcherServlet继承,所以可以在这里加载所有,下面不加载,而且这里面加载的Bean是可以
+        通过上下文获取到的.-->
+        <param-value>
+            classpath:applicationContext.xml,
+        </param-value>
+    </context-param>
+
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+
+    <!-- springMVC核心配置 -->
+    <servlet>
+        <servlet-name>spring</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <!--框架会默认加载一个名为spring-servlet.xml的文件(这个名字和上面的servlet-name有关),或者加载指定的文件,这里所有的配置在上下文加载了,这里不需要加载,所
+            以显式指定为空-->
+            <param-value></param-value>
+            <!--<param-value>classpath:applicationContext.xml;</param-value>-->
+        </init-param>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>spring</servlet-name>
+        <!--配置请求url的后缀-->
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
+
+    <!--启动tomcat欢迎页面-->
+    <welcome-file-list>
+        <welcome-file>index.jsp</welcome-file>
+    </welcome-file-list>
+
+
+
+
 </web-app>

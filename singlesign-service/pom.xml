@@ -14,8 +14,14 @@
     <dependencies>
         <dependency>
             <groupId>com.tian</groupId>
-            <artifactId>springmvcmybatis-service</artifactId>
+            <artifactId>singlesign-dao</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>com.tian</groupId>
+            <artifactId>singlesign-remote</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
     </dependencies>
 </project>
