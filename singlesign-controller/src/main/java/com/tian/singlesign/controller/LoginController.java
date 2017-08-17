@@ -12,9 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
 import java.util.UUID;
 
 /**
@@ -36,28 +39,33 @@ public class LoginController extends BaseController{
         return success.setData(s);
     }
 
-    /**
-     * 检查是否登录了
-     * @param request
-     * @param response
-     */
-    @RequestMapping("check_login")
-    @ResponseBody
-    public ResponseData checkLogin(HttpServletRequest request, HttpServletResponse response,String url) throws Exception{
-        request.getSession(true).setAttribute("url",url);
-        User user = getSessionUser(request);
-        if(user == null){
-            // 项目配置的访问路径
-            String s =request.getContextPath();
-            // 当前请求的访问路径,包括了项目访问路径,但是不包括ip和端口号
-            String s2 = request.getRequestURI();
-            // 本次请求的完整路径,也就是浏览器地址栏中看到的.
-            String s3 = request.getRequestURL().toString();
-
-            // 处理上面几个路径,得到项目启动默认访问的路径,一般为登录页面.
-            response.sendRedirect(s3.replace(s2,"")+s);
+    @RequestMapping("to_index")
+    public ModelAndView toIndex(String url, HttpServletRequest request, HttpServletResponse response) throws IOException {
+        //检查用户是否登录了, 如果没有登录, 返回到登录页面, 如果登录了,返回token
+        HttpSession session = request.getSession(false);
+        if(session == null || session.getAttribute("user") == null){
+            // 没有登录
+            ModelAndView mav = new ModelAndView("main");
+            mav.addObject("fromUrl", url);
+            return mav;
+        }else {
+            // 登录了
+            String token = request.getSession().getAttribute("token").toString();
+            response.sendRedirect(url+"?token="+token);
         }
-        return success.setData(user);
+        return null;
+
+    }
+
+    /**
+     * 检查token是否有效
+     * @param request
+     */
+    @RequestMapping("check_token")
+    @ResponseBody
+    public ResponseData checkToken(HttpServletRequest request,String token) throws Exception{
+        String thisToken = request.getParameter("token");
+        return success.setData(token.equals(thisToken));
     }
 
     /**
@@ -67,17 +75,16 @@ public class LoginController extends BaseController{
      * @return
      */
     @RequestMapping("login")
-    public ResponseData login(@NotNull String userName, @NotNull String password, HttpServletRequest request,HttpServletResponse response) throws Exception{
+    public ResponseData login(@NotNull String userName, @NotNull String password, String url, HttpServletRequest request,HttpServletResponse response) throws Exception{
         User user = userService.queryUserByUserNameAndPassword(userName,password);
         if(user != null){
             // 用户登录成功,把当前登录用户信息放入Session中管理
-            request.getSession().setAttribute("user",user);
+            request.getSession(true).setAttribute("user",user);
             String token = UUID.randomUUID().toString();
-            request.setAttribute("token",token);
 
-
-            response.sendRedirect(request.getSession(true).getAttribute("url").toString());
-//            return successData.setData(user);
+            request.getSession().setAttribute("token", token);
+            response.sendRedirect(url+"?token="+token);
+            return null;
         }
         return failed.setData("登录失败");
     }
