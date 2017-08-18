@@ -1,6 +1,7 @@
 package com.tian.singlesign.controller;
 
 import com.sun.istack.internal.NotNull;
+import com.tian.common.util.HttpUtils;
 import com.tian.common.util.JedisUtil;
 import com.tian.common.util.RandomUtil;
 import com.tian.common.validation.Regular;
@@ -124,5 +125,24 @@ public class LoginController extends BaseController {
         // 把验证码保存在redis缓存中
         JedisUtil.set(mobile, code, 60);
         return successData.setData(code);
+    }
+
+    /**
+     * 注销登录
+     */
+    @RequestMapping("logout")
+    public void logout(HttpServletRequest request, String sessionId){
+        request.getSession().removeAttribute("user");
+//        request.getSession().invalidate();
+        // 分别调用子系统的注销接口
+        for (String s:new String[]{"http://localhost:8085/cancel_session", "http://localhost:8088/testStatus/cancelSession"}) {
+            try {
+                HttpUtils.doGet(s+"?sessionId="+sessionId);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+        }
+
     }
 }
