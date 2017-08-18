@@ -26,7 +26,7 @@ import java.util.UUID;
  */
 @Controller
 @RequestMapping("login")
-public class LoginController extends BaseController{
+public class LoginController extends BaseController {
     @Autowired
     private IUserService userService;
     @Autowired
@@ -34,7 +34,7 @@ public class LoginController extends BaseController{
 
     @RequestMapping("test")
     @ResponseBody
-    public ResponseData test(){
+    public ResponseData test() {
         String s = testRemoteService.print("终于成功啦...");
         return success.setData(s);
     }
@@ -42,16 +42,16 @@ public class LoginController extends BaseController{
     @RequestMapping("to_index")
     public ModelAndView toIndex(String url, HttpServletRequest request, HttpServletResponse response) throws IOException {
         //检查用户是否登录了, 如果没有登录, 返回到登录页面, 如果登录了,返回token
-        HttpSession session = request.getSession(false);
-        if(session == null || session.getAttribute("user") == null){
+        HttpSession session = request.getSession(true);
+        if (session.getAttribute("user") == null) {
             // 没有登录
             ModelAndView mav = new ModelAndView("main");
             mav.addObject("fromUrl", url);
             return mav;
-        }else {
+        } else {
             // 登录了
             String token = request.getSession().getAttribute("token").toString();
-            response.sendRedirect(url+"?token="+token);
+            response.sendRedirect(url + (url.contains("?") ? "&" : "?") + "token=" + token);
         }
         return null;
 
@@ -59,31 +59,33 @@ public class LoginController extends BaseController{
 
     /**
      * 检查token是否有效
+     *
      * @param request
      */
     @RequestMapping("check_token")
     @ResponseBody
-    public ResponseData checkToken(HttpServletRequest request,String token) throws Exception{
+    public ResponseData checkToken(HttpServletRequest request, String token) throws Exception {
         String thisToken = request.getParameter("token");
         return success.setData(token.equals(thisToken));
     }
 
     /**
      * 用户登录接口(用户名,密码)
+     *
      * @param userName
      * @param password
      * @return
      */
     @RequestMapping("login")
-    public ResponseData login(@NotNull String userName, @NotNull String password, String url, HttpServletRequest request,HttpServletResponse response) throws Exception{
-        User user = userService.queryUserByUserNameAndPassword(userName,password);
-        if(user != null){
+    public ResponseData login(@NotNull String userName, @NotNull String password, String url, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        User user = userService.queryUserByUserNameAndPassword(userName, password);
+        if (user != null) {
             // 用户登录成功,把当前登录用户信息放入Session中管理
-            request.getSession(true).setAttribute("user",user);
+            request.getSession(true).setAttribute("user", user);
             String token = UUID.randomUUID().toString();
 
             request.getSession().setAttribute("token", token);
-            response.sendRedirect(url+"?token="+token);
+            response.sendRedirect(url + (url.contains("?") ? "&" : "?") + "token=" + token);
             return null;
         }
         return failed.setData("登录失败");
@@ -91,17 +93,18 @@ public class LoginController extends BaseController{
 
     /**
      * 通过手机号,验证码登录
+     *
      * @param mobile
      * @param code
      * @return
      */
     @RequestMapping("login_code")
     @ResponseBody
-    public ResponseData loginCode(@Regular("^(1[0-9]{10})$")String mobile, @NotNull String code, HttpServletRequest request){
+    public ResponseData loginCode(@Regular("^(1[0-9]{10})$") String mobile, @NotNull String code, HttpServletRequest request) {
         String c = JedisUtil.get(mobile);
-        if(c != null && c.equals(code)){
+        if (c != null && c.equals(code)) {
             User user = userService.queryUserByMobile(mobile);
-            request.getSession().setAttribute("user",user);
+            request.getSession().setAttribute("user", user);
             return successData.setData(user);
         }
         return failed.setData("验证码无效");
@@ -109,16 +112,17 @@ public class LoginController extends BaseController{
 
     /**
      * 模拟获取验证码
+     *
      * @return
      */
     @RequestMapping("get_check_code")
     @ResponseBody
-    public ResponseData getCheckCode(@Regular("^(1[0-9]{10})$") String mobile){
-        String code = RandomUtil.getRandomCode(4,0);
+    public ResponseData getCheckCode(@Regular("^(1[0-9]{10})$") String mobile) {
+        String code = RandomUtil.getRandomCode(4, 0);
         // 把验证码5213发送到手机上.
-        System.out.println("验证码: "+code+" 已经发送到手机 "+ mobile+"上了");
+        System.out.println("验证码: " + code + " 已经发送到手机 " + mobile + "上了");
         // 把验证码保存在redis缓存中
-        JedisUtil.set(mobile,code,60);
+        JedisUtil.set(mobile, code, 60);
         return successData.setData(code);
     }
 }
