@@ -12,10 +12,26 @@
         http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd"
        default-lazy-init="false">
 
+    <!-- 消费方应用名, 用于计算依赖关系, 不是匹配条件, 不要与服务提供方一样 -->
     <dubbo:application name="dubbo_consumer"></dubbo:application>
-    <!-- 使用zookeeper注册中心暴露服务地址 -->
+    <!-- 使用zookeeper注册中心暴露/发现服务地址
+     check 属性表示服务启动过程中是否检测注册中心.
+    -->
     <dubbo:registry address="zookeeper://127.0.0.1:2181" check="false"></dubbo:registry>
-    <!-- 要引用的服务 -->
-    <dubbo:reference interface="com.tian.springmvcmybatis.remote.ITestRemoteService" id="testRemoteService"></dubbo:reference>
+    <!-- 要引用的服务, 用于创建一个远程服务代理, 一个引用可以指向多个注册中心.
+     init属性默认是false, 也就是懒汉式
+     check 某个服务不检测
+     loadbalance 当有多个服务提供者时,负载策略, 默认就是随机的, 一般不用改
+     url 常用于测试环境时,点对点连接某个服务, 会忽略注册中心. 例: url="dubbo://localhost:20890"
+     registry 当有多个注册中心时, 指定从哪个注册中心引用服务
+     merger 分组聚合属性, 可以对一个接口不同组的实现的返回结果进行结果合并.
+     cache 对接口返回结果进行一个缓存
+     generic 泛化引用, 参数和返回没有POVO, 用map表示,通常用于通用框架
+     -->
+    <dubbo:reference interface="com.tian.springmvcmybatis.remote.ITestRemoteService" id="testRemoteService" init="true" check="false" loadbalance="random" ></dubbo:reference>
+    <!-- 消费方配置, 当ReferenceConfig某属性没有配置时, 采用此缺省值, 可选
+     check 所有引用不检测
+     -->
+    <dubbo:consumer check="false"/>
 
 </beans>
